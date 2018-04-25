@@ -22,16 +22,19 @@ class Backtest(object):
         """
         self.pnl = self._calc_pnl(self.prices, self.positions)
         self.equity_curve = self._build_equity_curve(self.pnl)
+        self.equity_curve.plot()
         
         total_return = self.equity_curve.iloc[-1]
         sharpe_ratio = self._calc_sharpe_ratio(self.pnl, rf, periods)
         max_dd = -self._calc_max_drawdown(self.equity_curve)
         dd_duration = self._calc_max_drawdown_duration(self.equity_curve)
+        winning_rate = self._winning_rate(self.prices, self.positions)
 
         stats = [("Total Return", "%0.2f%%" % ((total_return - 1.0) * 100.0)),
                  ("Sharpe Ratio", "%0.4f" % sharpe_ratio),
                  ("Max Drawdown", "%0.2f%%" % (max_dd * 100.0)),
-                 ("Drawdown Duration", "%d" % dd_duration)]
+                 ("Drawdown Duration", "%d" % dd_duration), 
+                 ("Winning Rate", "%0.2f%%" % (winning_rate * 100.0))]
         return stats    
 
     def _build_equity_curve(self, pnl):
@@ -46,6 +49,12 @@ class Backtest(object):
         pnl = prices.pct_change().multiply(positions.shift(1))
         pnl.iloc[0] = 0
         return pnl
+    
+    def _winning_rate(self, prices, positions):
+        ud = prices.diff()
+        ud[ud>0] = 1
+        ud[ud<0] = -1
+        return len(ud[ud==positions.shift(1)])/(len(ud)-1)
     
 #    def _calc_max_drawdown_duration(self, equity_curve):
 #        duration = pd.Series(index=equity_curve.index, name = 'Duration')

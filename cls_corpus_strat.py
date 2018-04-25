@@ -56,8 +56,11 @@ class CorpusStrategy(Strategy):
         ts_sym = self._get_symbol(ts)
         ts_substr = [''.join(s) for s in list(self.window(ts_sym, self.n-1))]
         substr_uniq = set(ts_substr)
+        
         Pr_up = [self.corpus_dict[s+'2'] for s in substr_uniq]
         Pr_down = [self.corpus_dict[s+'1'] for s in substr_uniq]
+        
+        
         prediction = ['2' if u>d else '1' for u, d in zip(Pr_up, Pr_down)]
         prediction_dct = dict(zip(substr_uniq, prediction))
         self.signal.iloc[self.n-1:] = [prediction_dct[s] for s in ts_substr]
